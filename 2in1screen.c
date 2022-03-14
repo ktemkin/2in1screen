@@ -33,7 +33,7 @@ double accel_x = 0.0;
 const double accel_gx = 6.0;
 const double accel_gy = 6.0;
 
-int current_state = 0;
+int current_state = 2;
 int consecutive = 0;
 
 const int hysteresis = 1;
@@ -90,26 +90,23 @@ FILE *bdopen(char const *fname, char leave_open) {
 
 void rotate_screen() {
 
-  for (int i = 0; i < 5; ++i) {
+  sprintf(command, "xrandr -o %s", ROT[current_state]);
+  system(command);
 
-    sprintf(command, "xrandr -o %s", ROT[current_state]);
-    system(command);
+  sprintf(command,
+          "xinput set-prop \"%s\" \"Coordinate Transformation Matrix\" %s",
+          "GXTP7380:00 27C6:0113", COOR_T[current_state]);
+  system(command);
 
-    sprintf(command,
-            "xinput set-prop \"%s\" \"Coordinate Transformation Matrix\" %s",
-            "GXTP7380:00 27C6:0113", COOR_T[current_state]);
-    system(command);
+  sprintf(command,
+          "xinput set-prop \"%s\" \"Coordinate Transformation Matrix\" %s",
+          "GXTP7380:00 27C6:0113 Stylus Pen (0)", COOR_S[current_state]);
+  system(command);
 
-    sprintf(command,
-            "xinput set-prop \"%s\" \"Coordinate Transformation Matrix\" %s",
-            "GXTP7380:00 27C6:0113 Stylus Pen (0)", COOR_S[current_state]);
-    system(command);
-
-    sprintf(command,
-            "xinput set-prop \"%s\" \"Coordinate Transformation Matrix\" %s",
-            "GXTP7380:00 27C6:0113 Stylus Eraser (0)", COOR_T[current_state]);
-    system(command);
-  }
+  sprintf(command,
+          "xinput set-prop \"%s\" \"Coordinate Transformation Matrix\" %s",
+          "GXTP7380:00 27C6:0113 Stylus Eraser (0)", COOR_T[current_state]);
+  system(command);
 }
 
 int main(int argc, char const *argv[]) {
@@ -137,6 +134,9 @@ int main(int argc, char const *argv[]) {
 #if N_STATE == 4
   FILE *dev_accel_x = bdopen("in_accel_x_raw", 1);
 #endif
+
+  // Before we do anything, start off with the screen rotated correctly.
+  rotate_screen();
 
   while (1) {
     fseek(dev_accel_y, 0, SEEK_SET);
